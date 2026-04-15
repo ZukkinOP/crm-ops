@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CRM · Operações de Campo</title>
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --surface: #ffffff;
+      --surface2: #f0f2f7;
+      --border: #e2e6ef;
+      --primary: #2563eb;
+      --primary-light: #eff4ff;
+      --primary-dark: #1d4ed8;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --muted: #6b7280;
+      --text: #111827;
+      --text2: #374151;
+      --radius: 10px;
+      --shadow: 0 1px 4px rgba(0,0,0,.08);
+      --shadow-lg: 0 4px 16px rgba(0,0,0,.10);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* LAYOUT */
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 220px; flex-shrink: 0; background: #1e293b; color: #e2e8f0;
+      display: flex; flex-direction: column; padding: 0;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 22px 20px 18px; font-size: 17px; font-weight: 700;
+      color: #fff; letter-spacing: -.3px; border-bottom: 1px solid #2d3e54;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-logo svg { opacity: .85; }
+    .sidebar-nav { padding: 12px 10px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px; cursor: pointer;
+      font-size: 14px; color: #94a3b8; transition: background .15s, color .15s;
+      margin-bottom: 2px; user-select: none;
+    }
+    .nav-item:hover { background: #2d3e54; color: #e2e8f0; }
+    .nav-item.active { background: var(--primary); color: #fff; }
+    .nav-item svg { flex-shrink: 0; }
+    .sidebar-footer { padding: 14px 16px; font-size: 12px; color: #475569; border-top: 1px solid #2d3e54; }
+
+    .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title { font-size: 18px; font-weight: 700; color: var(--text); }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600;
+      border: none; cursor: pointer; transition: background .15s, opacity .15s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+    .btn-outline:hover { background: var(--primary-light); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { opacity: .85; }
+    .btn-sm { padding: 5px 11px; font-size: 13px; border-radius: 6px; }
+
+    .content { padding: 24px 28px; flex: 1; }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px 20px; display: flex; align-items: center; gap: 16px;
+    }
+    .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .stat-icon.blue { background: var(--primary-light); color: var(--primary); }
+    .stat-icon.green { background: var(--success-light); color: var(--success); }
+    .stat-icon.yellow { background: var(--warning-light); color: var(--warning); }
+    .stat-icon.red { background: var(--danger-light); color: var(--danger); }
+    .stat-val { font-size: 26px; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    /* SECTION */
+    .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .section-header {
+      padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title { font-size: 15px; font-weight: 700; }
+
+    /* SEARCH / FILTER BAR */
+    .filter-bar { padding: 14px 20px; display: flex; gap: 10px; border-bottom: 1px solid var(--border); background: var(--surface2); flex-wrap: wrap; }
+    .search-input {
+      flex: 1; min-width: 180px; padding: 8px 12px 8px 36px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 14px; background: var(--surface); position: relative;
+      outline: none; transition: border .15s;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .search-wrap { position: relative; flex: 1; min-width: 180px; }
+    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+    .filter-select {
+      padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 14px; background: var(--surface); cursor: pointer; outline: none;
+    }
+    .filter-select:focus { border-color: var(--primary); }
+
+    /* TABLE */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th {
+      text-align: left; padding: 11px 16px; font-size: 12px; font-weight: 600;
+      color: var(--muted); text-transform: uppercase; letter-spacing: .4px;
+      background: var(--surface2); border-bottom: 1px solid var(--border);
+    }
+    td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafbff; }
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+    .empty-state svg { margin-bottom: 12px; opacity: .4; }
+    .empty-state p { font-size: 15px; }
+
+    /* BADGE */
+    .badge {
+      display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 99px;
+      font-size: 12px; font-weight: 600; gap: 4px;
+    }
+    .badge-green { background: var(--success-light); color: var(--success); }
+    .badge-yellow { background: var(--warning-light); color: var(--warning); }
+    .badge-red { background: var(--danger-light); color: var(--danger); }
+    .badge-blue { background: var(--primary-light); color: var(--primary); }
+    .badge-gray { background: var(--surface2); color: var(--muted); }
+
+    /* PRIORITY DOT */
+    .prio { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .prio-alta { background: var(--danger); }
+    .prio-media { background: var(--warning); }
+    .prio-baixa { background: var(--success); }
+
+    /* ACTION BUTTONS */
+    .actions { display: flex; gap: 6px; }
+    .icon-btn {
+      width: 30px; height: 30px; border-radius: 6px; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+      transition: background .15s;
+    }
+    .icon-btn-edit { background: var(--primary-light); color: var(--primary); }
+    .icon-btn-edit:hover { background: #dbeafe; }
+    .icon-btn-del { background: var(--danger-light); color: var(--danger); }
+    .icon-btn-del:hover { background: #fee2e2; }
+    .icon-btn-view { background: var(--surface2); color: var(--text2); }
+    .icon-btn-view:hover { background: var(--border); }
+
+    /* MODAL */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface); border-radius: 14px; box-shadow: var(--shadow-lg);
+      width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto;
+      transform: scale(.95) translateY(16px); transition: transform .2s;
+    }
+    .overlay.open .modal { transform: scale(1) translateY(0); }
+    .modal-header {
+      padding: 20px 24px 14px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); z-index: 10;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .modal-close { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 22px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+    .modal-close:hover { background: var(--surface2); color: var(--text); }
+    .modal-body { padding: 20px 24px; }
+    .modal-footer { padding: 14px 24px 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
+
+    /* FORM */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-row.one { grid-template-columns: 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .form-label { font-size: 13px; font-weight: 600; color: var(--text2); }
+    .form-control {
+      padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 14px; font-family: inherit; outline: none; transition: border .15s;
+      background: var(--surface); color: var(--text);
+    }
+    .form-control:focus { border-color: var(--primary); }
+    textarea.form-control { resize: vertical; min-height: 80px; }
+    .form-section-title { font-size: 13px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: .5px; margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1.5px solid var(--primary-light); }
+
+    /* CLIENT DETAIL */
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .detail-item { }
+    .detail-item.full { grid-column: 1/-1; }
+    .detail-key { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+    .detail-val { font-size: 14px; color: var(--text2); }
+    .particularidades-box {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 14px; margin-top: 4px;
+    }
+    .partic-row { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+    .partic-row:last-child { border-bottom: none; }
+    .partic-label { font-size: 12px; font-weight: 700; color: var(--muted); width: 130px; flex-shrink: 0; }
+    .partic-val { font-size: 13px; color: var(--text2); flex: 1; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 0; border-bottom: 1.5px solid var(--border); margin-bottom: 0; }
+    .tab {
+      padding: 11px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+      color: var(--muted); border-bottom: 2.5px solid transparent; margin-bottom: -1.5px;
+      transition: color .15s, border-color .15s;
+    }
+    .tab.active { color: var(--primary); border-color: var(--primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* AVATAR */
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%; display: inline-flex;
+      align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
+      flex-shrink: 0; text-transform: uppercase;
+    }
+    .client-row-info { display: flex; align-items: center; gap: 10px; }
+
+    /* PAGE VISIBILITY */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* CHECKBOX */
+    .check-done {
+      width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background .15s, border-color .15s;
+    }
+    .check-done.checked { background: var(--success); border-color: var(--success); }
+    .check-done.checked::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 700; }
+
+    /* DUE DATE */
+    .due-overdue { color: var(--danger); font-weight: 600; }
+    .due-today { color: var(--warning); font-weight: 600; }
+    .due-ok { color: var(--muted); }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      CRM Operações
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('clientes')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Clientes
+      </div>
+      <div class="nav-item" onclick="showPage('tarefas')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Tarefas & Follow-ups
+      </div>
+    </nav>
+    <div class="sidebar-footer">Operações de Campo · 2026</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ======================== DASHBOARD ======================== -->
+    <div id="page-dashboard" class="page active">
+      <div class="topbar">
+        <span class="topbar-title">Dashboard</span>
+        <div class="topbar-actions">
+          <span style="font-size:13px;color:var(--muted)" id="dash-date"></span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="stats-grid" id="stats-grid">
+          <!-- filled by JS -->
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <!-- Próximos Follow-ups -->
+          <div class="section">
+            <div class="section-header">
+              <span class="section-title">⏰ Próximas Tarefas</span>
+              <button class="btn btn-outline btn-sm" onclick="showPage('tarefas')">Ver todas</button>
+            </div>
+            <div id="dash-tasks-list" style="padding:4px 0;"></div>
+          </div>
+          <!-- Clientes recentes -->
+          <div class="section">
+            <div class="section-header">
+              <span class="section-title">🏢 Clientes Recentes</span>
+              <button class="btn btn-outline btn-sm" onclick="showPage('clientes')">Ver todos</button>
+            </div>
+            <div id="dash-clients-list" style="padding:4px 0;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================== CLIENTES ======================== -->
+    <div id="page-clientes" class="page">
+      <div class="topbar">
+        <span class="topbar-title">Clientes</span>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="openClientModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo Cliente
+          </button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="section">
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="search-input" id="client-search" placeholder="Buscar cliente…" oninput="renderClients()">
+            </div>
+            <select class="filter-select" id="client-status-filter" onchange="renderClients()">
+              <option value="">Todos os status</option>
+              <option value="Ativo">Ativo</option>
+              <option value="Inativo">Inativo</option>
+              <option value="Em implantação">Em implantação</option>
+            </select>
+            <select class="filter-select" id="client-metodo-filter" onchange="renderClients()">
+              <option value="">Todos os métodos</option>
+              <option value="Pesquisador in loco">In loco</option>
+              <option value="Robô / Digital">Robô / Digital</option>
+              <option value="Híbrido">Híbrido</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Segmento</th>
+                  <th>Método de Coleta</th>
+                  <th>Frequência</th>
+                  <th>Status</th>
+                  <th>Tarefas abertas</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="clients-tbody"></tbody>
+            </table>
+            <div id="clients-empty" class="empty-state" style="display:none">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              <p>Nenhum cliente encontrado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================== TAREFAS ======================== -->
+    <div id="page-tarefas" class="page">
+      <div class="topbar">
+        <span class="topbar-title">Tarefas & Follow-ups</span>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="openTaskModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova Tarefa
+          </button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="section">
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="search-input" id="task-search" placeholder="Buscar tarefa…" oninput="renderTasks()">
+            </div>
+            <select class="filter-select" id="task-status-filter" onchange="renderTasks()">
+              <option value="">Todos os status</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Em andamento">Em andamento</option>
+              <option value="Concluída">Concluída</option>
+            </select>
+            <select class="filter-select" id="task-prio-filter" onchange="renderTasks()">
+              <option value="">Todas as prioridades</option>
+              <option value="Alta">Alta</option>
+              <option value="Média">Média</option>
+              <option value="Baixa">Baixa</option>
+            </select>
+            <select class="filter-select" id="task-client-filter" onchange="renderTasks()">
+              <option value="">Todos os clientes</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:36px"></th>
+                  <th>Tarefa</th>
+                  <th>Cliente</th>
+                  <th>Prioridade</th>
+                  <th>Responsável</th>
+                  <th>Vencimento</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tasks-tbody"></tbody>
+            </table>
+            <div id="tasks-empty" class="empty-state" style="display:none">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              <p>Nenhuma tarefa encontrada.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============== MODAL CLIENTE ============== -->
+<div class="overlay" id="client-overlay" onclick="closeClientModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="client-modal-title">Novo Cliente</span>
+      <button class="modal-close" onclick="closeClientModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section-title">Informações Gerais</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome do cliente *</label>
+          <input type="text" class="form-control" id="c-nome" placeholder="Ex: Supermercado Bom Preço">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Segmento</label>
+          <select class="form-control" id="c-segmento">
+            <option value="">Selecione…</option>
+            <option>Supermercados</option>
+            <option>Farmácias</option>
+            <option>Postos de Combustível</option>
+            <option>Material de Construção</option>
+            <option>Vestuário</option>
+            <option>Eletrônicos</option>
+            <option>Alimentação</option>
+            <option>Saúde e Beleza</option>
+            <option>Atacado</option>
+            <option>Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Região / UF</label>
+          <input type="text" class="form-control" id="c-regiao" placeholder="Ex: SP, RJ, Sul…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" id="c-status">
+            <option>Ativo</option>
+            <option>Em implantação</option>
+            <option>Inativo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section-title">Particularidades de Coleta em Campo</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Método de coleta</label>
+          <select class="form-control" id="c-metodo">
+            <option>Pesquisador in loco</option>
+            <option>Robô / Digital</option>
+            <option>Híbrido</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Frequência de coleta</label>
+          <select class="form-control" id="c-frequencia">
+            <option>Diária</option>
+            <option>Semanal</option>
+            <option>Quinzenal</option>
+            <option>Mensal</option>
+            <option>Sob demanda</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Dia(s) / horário preferencial</label>
+          <input type="text" class="form-control" id="c-horario" placeholder="Ex: Terça e quinta, manhã">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nº de estabelecimentos</label>
+          <input type="number" class="form-control" id="c-estabs" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-row one">
+        <div class="form-group">
+          <label class="form-label">Categorias / produtos pesquisados</label>
+          <input type="text" class="form-control" id="c-categorias" placeholder="Ex: Hortifruti, Carnes, Laticínios">
+        </div>
+      </div>
+      <div class="form-row one">
+        <div class="form-group">
+          <label class="form-label">Restrições / regras do cliente</label>
+          <textarea class="form-control" id="c-restricoes" placeholder="Ex: Não fotografar, necessita agendar visita com gerente…"></textarea>
+        </div>
+      </div>
+      <div class="form-row one">
+        <div class="form-group">
+          <label class="form-label">Contato interno responsável</label>
+          <input type="text" class="form-control" id="c-responsavel-interno" placeholder="Nome do analista/gestor responsável">
+        </div>
+      </div>
+      <div class="form-row one">
+        <div class="form-group">
+          <label class="form-label">Observações gerais</label>
+          <textarea class="form-control" id="c-obs" placeholder="Informações adicionais relevantes para a operação…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeClientModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveClient()">Salvar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MODAL TAREFA ============== -->
+<div class="overlay" id="task-overlay" onclick="closeTaskModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="task-modal-title">Nova Tarefa</span>
+      <button class="modal-close" onclick="closeTaskModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row one">
+        <div class="form-group">
+          <label class="form-label">Título da tarefa *</label>
+          <input type="text" class="form-control" id="t-titulo" placeholder="Descreva a tarefa ou follow-up…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Cliente relacionado</label>
+          <select class="form-control" id="t-cliente">
+            <option value="">— Sem cliente —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select class="form-control" id="t-tipo">
+            <option>Solicitação de Evidência</option>
+            <option>Inclusão de Concorrente</option>
+            <option>Remoção de Concorrente</option>
+            <option>Substituição de Concorrente</option>
+            <option>Alteração de Endereço</option>
+            <option>Follow-up</option>
+            <option>Visita técnica</option>
+            <option>Resolução de problema</option>
+            <option>Implantação</option>
+            <option>Treinamento</option>
+            <option>Auditoria de coleta</option>
+            <option>Reunião interna</option>
+            <option>Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Prioridade</label>
+          <select class="form-control" id="t-prioridade">
+            <option>Alta</option>
+            <option>Média</option>
+            <option>Baixa</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" id="t-status">
+            <option>Pendente</option>
+            <option>Em andamento</option>
+            <option>Concluída</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Responsável</label>
+          <input type="text" class="form-control" id="t-responsavel" placeholder="Nome do responsável">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data de vencimento</label>
+          <input type="date" class="form-control" id="t-vencimento">
+        </div>
+      </div>
+      <div class="form-row one">
+        <div class="form-group">
+          <label class="form-label">Descrição / anotações</label>
+          <textarea class="form-control" id="t-descricao" placeholder="Detalhes, contexto, próximos passos…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeTaskModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTask()">Salvar Tarefa</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MODAL DETALHE CLIENTE ============== -->
+<div class="overlay" id="client-detail-overlay" onclick="closeClientDetail(event)">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:700px">
+    <div class="modal-header">
+      <span class="modal-title" id="cd-title">Detalhes do Cliente</span>
+      <button class="modal-close" onclick="closeClientDetail()">×</button>
+    </div>
+    <div class="modal-body" id="cd-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeClientDetail()">Fechar</button>
+      <button class="btn btn-primary" id="cd-edit-btn">Editar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== FIREBASE LOADING OVERLAY ============== -->
+<div id="fb-loading" style="display:none;position:fixed;inset:0;background:rgba(30,41,59,.75);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <div style="width:44px;height:44px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:fb-spin .75s linear infinite"></div>
+  <div style="color:#fff;font-size:15px;font-weight:600;letter-spacing:-.2px">Conectando ao banco de dados…</div>
+</div>
+<style>@keyframes fb-spin{to{transform:rotate(360deg)}}</style>
+
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+<script>
+// ============================================================
+//  DATA STORE
+// ============================================================
+let clients = [];
+let tasks = [];
+let editingClientId = null;
+let editingTaskId = null;
+let nextClientId = 1;
+let nextTaskId = 1;
+
+const SCHEMA_VERSION = '4'; // bump para forçar reset do banco
+
+// ============================================================
+//  CANAIS TEAMS MONITORADOS
+// ============================================================
+const TEAMS_CHANNELS = {
+  PESQUISAS:   '19:Ir8SS4_FBq8rZRUuVREUZm3wVaBAQT8zzcLWXPh70qM1@thread.tacv2',
+  MUFFATO:     '19:QduXH0UNWQ1k7907MQwftXa2mHAshPLFEjIgXXUhPt01@thread.tacv2',
+  PAGUE_MENOS: '19:_AwEOJ3FzllcduaODdTgwROpRq2UfvDrjN6_DIhVcJM1@thread.tacv2',
+  VIVO:        '19:tSOgGDYBXjCMBhoAOjYLs7fomZsEZ172BGCnIGden8E1@thread.tacv2',
+  SWIFT_OPS:   '19:593e9e55eefe465193add62537372b19@thread.v2',
+};
+
+const COLORS = ['#2563eb','#16a34a','#d97706','#9333ea','#0891b2','#be123c','#0369a1','#15803d'];
+
+function clientColor(id) { return COLORS[id % COLORS.length]; }
+function initials(name) {
+  return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+
+// ============================================================
+//  FIREBASE — PERSISTÊNCIA COMPARTILHADA EM TEMPO REAL
+// ============================================================
+const firebaseConfig = {
+  apiKey:            "AIzaSyCJf3TLe_rrLKZMOj-9SeGqz67tmrvsbYE",
+  authDomain:        "zukkin-crm-op.firebaseapp.com",
+  databaseURL:       "https://zukkin-crm-op-default-rtdb.firebaseio.com",
+  projectId:         "zukkin-crm-op",
+  storageBucket:     "zukkin-crm-op.firebasestorage.app",
+  messagingSenderId: "201900123035",
+  appId:             "1:201900123035:web:855b64735810ce3e50f73e"
+};
+
+let fbDb           = null;
+let isInitialized  = false;
+let importedTeamsIds = [];
+
+function recalcIds() {
+  nextClientId = (clients.length ? clients.reduce((m,c) => Math.max(m,c.id), 0) : 0) + 1;
+  nextTaskId   = (tasks.length   ? tasks.reduce((m,t)   => Math.max(m,t.id), 0) : 0) + 1;
+}
+
+function rerenderCurrentPage() {
+  const activePage = document.querySelector('.page.active');
+  if (!activePage) return;
+  const pageId = activePage.id.replace('page-', '');
+  if (pageId === 'tarefas')  { populateTaskClientFilter(); renderTasks(); }
+  else if (pageId === 'clientes') renderClients();
+}
+
+function saveData() {
+  if (!fbDb) return;
+  fbDb.ref('crm-ops').set({
+    version: SCHEMA_VERSION,
+    clients: clients,
+    tasks:   tasks,
+    importedTeamsIds: importedTeamsIds
+  }).catch(e => console.warn('Erro ao salvar no Firebase:', e));
+}
+
+function initFirebase() {
+  firebase.initializeApp(firebaseConfig);
+  fbDb = firebase.database();
+
+  const loadingEl = document.getElementById('fb-loading');
+  loadingEl.style.display = 'flex';
+
+  // Autenticação anônima — silenciosa, sem tela de login
+  firebase.auth().signInAnonymously()
+    .then(() => {
+      fbDb.ref('crm-ops').on('value', (snapshot) => {
+        const data = snapshot.val();
+
+        if (!isInitialized) {
+          isInitialized = true;
+          loadingEl.style.display = 'none';
+
+          if (!data || data.version !== SCHEMA_VERSION) {
+            // Primeira abertura ou versão desatualizada — semeia dados
+            seed();
+            importedTeamsIds = [];
+            importTeamsPending();
+            saveData();
+          } else {
+            clients          = Array.isArray(data.clients) ? data.clients : Object.values(data.clients || {});
+            tasks            = Array.isArray(data.tasks)   ? data.tasks   : Object.values(data.tasks   || {});
+            importedTeamsIds = Array.isArray(data.importedTeamsIds) ? data.importedTeamsIds : [];
+            recalcIds();
+            importTeamsPending();
+          }
+          renderDashboard();
+        } else {
+          // Atualização em tempo real vinda de outro analista
+          if (data && data.version === SCHEMA_VERSION) {
+            clients          = Array.isArray(data.clients) ? data.clients : Object.values(data.clients || {});
+            tasks            = Array.isArray(data.tasks)   ? data.tasks   : Object.values(data.tasks   || {});
+            importedTeamsIds = Array.isArray(data.importedTeamsIds) ? data.importedTeamsIds : [];
+            recalcIds();
+            rerenderCurrentPage();
+            renderDashboard();
+          }
+        }
+      });
+    })
+    .catch(e => {
+      loadingEl.style.display = 'none';
+      console.error('Erro ao conectar ao Firebase:', e);
+      showToast('⚠️ Erro ao conectar ao banco de dados. Recarregue a página.', 'error');
+    });
+}
+
+// ============================================================
+//  TEAMS IMPORT ENGINE
+// ============================================================
+function importTeamsPending() {
+  const pending = window.TEAMS_PENDING || [];
+  if (!pending.length) return 0;
+
+  const imported = [...importedTeamsIds];
+
+  let count = 0;
+  pending.forEach(p => {
+    if (imported.includes(p.teamsId)) return; // already imported
+
+    // Try to match client by name
+    let clienteId = null;
+    if (p.clienteNome) {
+      const nome = p.clienteNome.toLowerCase();
+      const match = clients.find(c => c.nome.toLowerCase().includes(nome) || nome.includes(c.nome.toLowerCase()));
+      if (match) clienteId = match.id;
+    }
+    if (!clienteId && p.clienteId) clienteId = p.clienteId;
+
+    tasks.push({
+      id: nextTaskId++,
+      titulo: p.titulo,
+      clienteId,
+      tipo: p.tipo || 'Follow-up',
+      prioridade: p.prioridade || 'Média',
+      status: 'Pendente',
+      responsavel: p.responsavel || 'André Bezerra',
+      vencimento: p.vencimento || null,
+      descricao: [
+        p.descricao || '',
+        p.teamsAutor ? `📩 Menção de: ${p.teamsAutor}` : '',
+        p.teamsData  ? `🕒 Em: ${p.teamsData}` : '',
+        p.origem     ? `📍 ${p.origem}` : ''
+      ].filter(Boolean).join('\n'),
+      fromTeams: true
+    });
+    imported.push(p.teamsId);
+    count++;
+  });
+
+  if (count > 0) {
+    importedTeamsIds = imported;
+    saveData();
+    showToast(`✅ ${count} tarefa${count>1?'s':''} importada${count>1?'s':''} do Teams!`, 'success');
+  }
+  return count;
+}
+
+// ============================================================
+//  TOAST NOTIFICATIONS
+// ============================================================
+function showToast(msg, type='info') {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px';
+    document.body.appendChild(container);
+  }
+  const colors = { success:'#16a34a', info:'#2563eb', warning:'#d97706', error:'#dc2626' };
+  const toast = document.createElement('div');
+  toast.style.cssText = `background:${colors[type]||colors.info};color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:all .25s;max-width:320px`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  requestAnimationFrame(() => { toast.style.opacity='1'; toast.style.transform='translateY(0)'; });
+  setTimeout(() => {
+    toast.style.opacity='0'; toast.style.transform='translateY(8px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 4500);
+}
+
+// ============================================================
+//  SEED DATA — 33 clientes reais Zukkin
+// ============================================================
+function seed() {
+  const P = TEAMS_CHANNELS.PESQUISAS;
+  clients = [
+    { id: nextClientId++, nome: 'Armazém da Maria',    segmento: 'Supermercados',  regiao: 'NE',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Atakarejo',            segmento: 'Atacarejo',      regiao: 'BA',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Barbosa',              segmento: 'Supermercados',  regiao: 'SP',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: 'Geral', restricoes: 'Gerar lista de retorno quando encontramento cair vs. semana anterior.', responsavelInterno: 'André Bezerra', obs: 'Canal Teams: PESQUISAS.', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Big Mart',             segmento: 'Supermercados',  regiao: '',          status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Cooper',               segmento: 'Supermercados',  regiao: 'SP',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'De Angelina',          segmento: 'Supermercados',  regiao: 'SP',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Gigante Atacadista',   segmento: 'Atacado',        regiao: '',          status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Gmais',                segmento: 'Supermercados',  regiao: '',          status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Goodbom',              segmento: 'Supermercados',  regiao: 'SP',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Grupo Coutinho',       segmento: 'Atacado',        regiao: 'NE',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Grupo Pão de Açúcar',  segmento: 'Supermercados',  regiao: 'Nacional',  status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Grupo Pereira',        segmento: 'Supermercados',  regiao: 'NE',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: 'Geral', restricoes: 'Listas maiores e FLV podem ser contadas como uma só (verificar orientação vigente).', responsavelInterno: 'André Bezerra', obs: 'Mencionado como "cliente Pereira" no canal PESQUISAS.', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Líder Atacadista',     segmento: 'Atacado',        regiao: '',          status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Lopes',                segmento: 'Supermercados',  regiao: 'SP',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Master',               segmento: 'Supermercados',  regiao: '',          status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    {
+      id: nextClientId++, nome: 'Muffato', segmento: 'Supermercados',
+      regiao: 'PR, SP', status: 'Ativo', metodo: 'Pesquisador in loco',
+      frequencia: 'Semanal', horario: 'Segunda e quinta-feira',
+      estabs: 0, categorias: 'Leite LV, mercearia geral',
+      restricoes: 'Lista de leite LV coletada 2x por semana (seg e qui). Pesquisas ocultas quando necessário.',
+      responsavelInterno: 'André Bezerra',
+      obs: 'Time Teams dedicado. Contato Qualidade: Rafael Pipa.',
+      teamsChannelId: TEAMS_CHANNELS.MUFFATO
+    },
+    { id: nextClientId++, nome: 'Nordestão',            segmento: 'Supermercados',  regiao: 'NE',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Nosso Atacarejo',      segmento: 'Atacarejo',      regiao: '',          status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    {
+      id: nextClientId++, nome: 'Pague Menos', segmento: 'Farmácias',
+      regiao: 'Nacional', status: 'Ativo', metodo: 'Pesquisador in loco',
+      frequencia: 'Semanal', horario: '2x por semana',
+      estabs: 0, categorias: 'Varejo farmacêutico — Covabra, Higa, São Vicente',
+      restricoes: 'Verificar ocorrências com pesquisador em lojas com encontramento muito baixo. Lista complementar quando app falhar.',
+      responsavelInterno: 'Gabriela Prado',
+      obs: 'Time Teams dedicado. Contato Qualidade: Melissa Nascimento.',
+      teamsChannelId: TEAMS_CHANNELS.PAGUE_MENOS
+    },
+    { id: nextClientId++, nome: 'Prefeitura Curitiba',  segmento: 'Governo',        regiao: 'PR',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Sob demanda', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Rede Krill',           segmento: 'Supermercados',  regiao: '',          status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Rede Mix',             segmento: 'Atacado',        regiao: '',          status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'São Luis',             segmento: 'Supermercados',  regiao: 'SP',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    {
+      id: nextClientId++, nome: 'São Vicente', segmento: 'Supermercados',
+      regiao: 'SP', status: 'Ativo', metodo: 'Pesquisador in loco',
+      frequencia: 'Semanal', horario: '2x por semana (1 ida a escolher + quinta)',
+      estabs: 0, categorias: 'Varejo',
+      restricoes: 'Lista complementar quando busca preço não funcionar no estabelecimento.',
+      responsavelInterno: 'André Bezerra',
+      obs: 'Canal PESQUISAS. Recorrência: 2 visitas/semana.',
+      teamsChannelId: TEAMS_CHANNELS.PAGUE_MENOS
+    },
+    {
+      id: nextClientId++, nome: 'Savegnago', segmento: 'Supermercados',
+      regiao: 'SP', status: 'Ativo', metodo: 'Pesquisador in loco',
+      frequencia: 'Semanal', horario: '',
+      estabs: 0, categorias: 'Geral',
+      restricoes: 'Gerar lista de retorno quando encontramento baixo.',
+      responsavelInterno: 'André Bezerra',
+      obs: 'Mencionado no canal PESQUISAS.',
+      teamsChannelId: P
+    },
+    { id: nextClientId++, nome: 'Shibata',              segmento: 'Supermercados',  regiao: 'SP',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Spani',                segmento: 'Atacarejo',      regiao: 'SP',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Super do Povo',        segmento: 'Supermercados',  regiao: '',          status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    {
+      id: nextClientId++, nome: 'Swift', segmento: 'Alimentação',
+      regiao: 'Nacional', status: 'Ativo', metodo: 'Pesquisador in loco',
+      frequencia: 'Semanal', horario: 'Início de semana',
+      estabs: 0, categorias: 'HIPER, SUPER, ATACADO — listas separadas por canal de venda',
+      restricoes: 'Todos os itens precisam de evidência fotográfica. Listas separadas por canal (Hiper/Super e Atacado). Gerar lista de retorno em lojas com encontramento baixo.',
+      responsavelInterno: 'André Bezerra',
+      obs: 'Canal Teams: PESQUISAS + grupo Ops. Contato Qualidade: Beatriz Barreto.',
+      teamsChannelId: TEAMS_CHANNELS.SWIFT_OPS
+    },
+    { id: nextClientId++, nome: 'Vila Sul',             segmento: 'Supermercados',  regiao: '',          status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    {
+      id: nextClientId++, nome: 'Vivo', segmento: 'Telecomunicações',
+      regiao: 'Nacional', status: 'Ativo', metodo: 'Pesquisador in loco',
+      frequencia: 'Semanal', horario: '',
+      estabs: 0, categorias: 'Telecomunicações',
+      restricoes: 'TODOS os itens coletados precisam vir com foto obrigatoriamente.',
+      responsavelInterno: 'André Bezerra',
+      obs: 'Time Teams dedicado. Contato Qualidade: Iris Patricio.',
+      teamsChannelId: TEAMS_CHANNELS.VIVO
+    },
+    { id: nextClientId++, nome: 'Zaffari',              segmento: 'Supermercados',  regiao: 'RS',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+    { id: nextClientId++, nome: 'Zona Sul',             segmento: 'Supermercados',  regiao: 'RJ',        status: 'Ativo', metodo: 'Pesquisador in loco', frequencia: 'Semanal', horario: '', estabs: 0, categorias: '', restricoes: '', responsavelInterno: 'André Bezerra', obs: '', teamsChannelId: P },
+  ];
+  tasks = [];
+}
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+page+"'")) n.classList.add('active');
+  });
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'clientes') renderClients();
+  if (page === 'tarefas') { populateTaskClientFilter(); renderTasks(); }
+}
+
+// ============================================================
+//  DASHBOARD
+// ============================================================
+function renderDashboard() {
+  // Date
+  const now = new Date();
+  document.getElementById('dash-date').textContent = now.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+
+  // Stats
+  const openTasks = tasks.filter(t => t.status !== 'Concluída').length;
+  const overdueTasks = tasks.filter(t => t.status !== 'Concluída' && t.vencimento && t.vencimento < now.toISOString().split('T')[0]).length;
+  const activeClients = clients.filter(c => c.status === 'Ativo').length;
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+      <div><div class="stat-val">${clients.length}</div><div class="stat-label">Clientes cadastrados</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+      <div><div class="stat-val">${activeClients}</div><div class="stat-label">Clientes ativos</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon yellow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+      <div><div class="stat-val">${openTasks}</div><div class="stat-label">Tarefas em aberto</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+      <div><div class="stat-val">${overdueTasks}</div><div class="stat-label">Tarefas vencidas</div></div>
+    </div>
+  `;
+
+  // Tasks list
+  const upcomingTasks = tasks.filter(t => t.status !== 'Concluída')
+    .sort((a,b) => (a.vencimento||'9999') > (b.vencimento||'9999') ? 1 : -1)
+    .slice(0,5);
+  const today = now.toISOString().split('T')[0];
+  const tl = document.getElementById('dash-tasks-list');
+  if (!upcomingTasks.length) { tl.innerHTML = '<div class="empty-state"><p>Nenhuma tarefa pendente.</p></div>'; }
+  else {
+    tl.innerHTML = upcomingTasks.map(t => {
+      const c = clients.find(x=>x.id===t.clienteId);
+      const dueClass = !t.vencimento ? 'due-ok' : t.vencimento < today ? 'due-overdue' : t.vencimento === today ? 'due-today' : 'due-ok';
+      const dueLabel = !t.vencimento ? '—' : t.vencimento < today ? '⚠ '+fmtDate(t.vencimento) : fmtDate(t.vencimento);
+      const prioBadge = prioBadgeHTML(t.prioridade);
+      return `<div style="padding:11px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+        <span class="prio prio-${t.prioridade.toLowerCase().replace('é','e')}"></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.titulo}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${c?c.nome:'Sem cliente'}</div>
+        </div>
+        <span class="${dueClass}" style="font-size:12px;white-space:nowrap">${dueLabel}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Clients list
+  const recentClients = [...clients].reverse().slice(0,5);
+  const cl = document.getElementById('dash-clients-list');
+  if (!recentClients.length) { cl.innerHTML = '<div class="empty-state"><p>Nenhum cliente.</p></div>'; }
+  else {
+    cl.innerHTML = recentClients.map(c => {
+      const openCount = tasks.filter(t => t.clienteId === c.id && t.status !== 'Concluída').length;
+      return `<div style="padding:11px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+        <div class="avatar" style="background:${clientColor(c.id)};color:#fff">${initials(c.nome)}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${c.nome}</div>
+          <div style="font-size:12px;color:var(--muted)">${c.segmento||'—'} · ${c.metodo}</div>
+        </div>
+        ${statusBadgeHTML(c.status)}
+        ${openCount>0?`<span class="badge badge-yellow">${openCount} tarefa${openCount>1?'s':''}</span>`:''}
+      </div>`;
+    }).join('');
+  }
+}
+
+// ============================================================
+//  CLIENTS RENDER
+// ============================================================
+function renderClients() {
+  const q = (document.getElementById('client-search').value||'').toLowerCase();
+  const sf = document.getElementById('client-status-filter').value;
+  const mf = document.getElementById('client-metodo-filter').value;
+
+  let filtered = clients.filter(c => {
+    const match = !q || c.nome.toLowerCase().includes(q) || (c.segmento||'').toLowerCase().includes(q) || (c.regiao||'').toLowerCase().includes(q);
+    const matchS = !sf || c.status === sf;
+    const matchM = !mf || c.metodo === mf;
+    return match && matchS && matchM;
+  });
+
+  const tbody = document.getElementById('clients-tbody');
+  const empty = document.getElementById('clients-empty');
+
+  if (!filtered.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display='none';
+
+  tbody.innerHTML = filtered.map(c => {
+    const openTasks = tasks.filter(t => t.clienteId === c.id && t.status !== 'Concluída').length;
+    return `<tr>
+      <td>
+        <div class="client-row-info">
+          <div class="avatar" style="background:${clientColor(c.id)};color:#fff">${initials(c.nome)}</div>
+          <div>
+            <div style="font-weight:600">${c.nome}</div>
+            <div style="font-size:12px;color:var(--muted)">${c.regiao||''}</div>
+          </div>
+        </div>
+      </td>
+      <td>${c.segmento||'—'}</td>
+      <td><span class="badge badge-blue">${c.metodo}</span></td>
+      <td>${c.frequencia}</td>
+      <td>${statusBadgeHTML(c.status)}</td>
+      <td>${openTasks > 0 ? `<span class="badge badge-yellow">${openTasks}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>
+        <div class="actions">
+          <button class="icon-btn icon-btn-view" title="Ver detalhes" onclick="viewClient(${c.id})">👁</button>
+          <button class="icon-btn icon-btn-edit" title="Editar" onclick="openClientModal(${c.id})">✏️</button>
+          <button class="icon-btn icon-btn-del" title="Excluir" onclick="deleteClient(${c.id})">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+//  CLIENT MODAL
+// ============================================================
+function openClientModal(id) {
+  editingClientId = id || null;
+  const modal = document.getElementById('client-overlay');
+  if (id) {
+    const c = clients.find(x=>x.id===id);
+    document.getElementById('client-modal-title').textContent = 'Editar Cliente';
+    document.getElementById('c-nome').value = c.nome;
+    document.getElementById('c-segmento').value = c.segmento||'';
+    document.getElementById('c-regiao').value = c.regiao||'';
+    document.getElementById('c-status').value = c.status;
+    document.getElementById('c-metodo').value = c.metodo;
+    document.getElementById('c-frequencia').value = c.frequencia;
+    document.getElementById('c-horario').value = c.horario||'';
+    document.getElementById('c-estabs').value = c.estabs||'';
+    document.getElementById('c-categorias').value = c.categorias||'';
+    document.getElementById('c-restricoes').value = c.restricoes||'';
+    document.getElementById('c-responsavel-interno').value = c.responsavelInterno||'';
+    document.getElementById('c-obs').value = c.obs||'';
+  } else {
+    document.getElementById('client-modal-title').textContent = 'Novo Cliente';
+    ['c-nome','c-regiao','c-horario','c-estabs','c-categorias','c-restricoes','c-responsavel-interno','c-obs'].forEach(id=>{document.getElementById(id).value='';});
+    document.getElementById('c-segmento').value='';
+    document.getElementById('c-status').value='Ativo';
+    document.getElementById('c-metodo').value='Pesquisador in loco';
+    document.getElementById('c-frequencia').value='Semanal';
+  }
+  modal.classList.add('open');
+}
+
+function closeClientModal(e) {
+  if (!e || e.target === document.getElementById('client-overlay')) {
+    document.getElementById('client-overlay').classList.remove('open');
+  }
+}
+
+function saveClient() {
+  const nome = document.getElementById('c-nome').value.trim();
+  if (!nome) { alert('Informe o nome do cliente.'); return; }
+  const data = {
+    nome, segmento: document.getElementById('c-segmento').value,
+    regiao: document.getElementById('c-regiao').value.trim(),
+    status: document.getElementById('c-status').value,
+    metodo: document.getElementById('c-metodo').value,
+    frequencia: document.getElementById('c-frequencia').value,
+    horario: document.getElementById('c-horario').value.trim(),
+    estabs: parseInt(document.getElementById('c-estabs').value)||0,
+    categorias: document.getElementById('c-categorias').value.trim(),
+    restricoes: document.getElementById('c-restricoes').value.trim(),
+    responsavelInterno: document.getElementById('c-responsavel-interno').value.trim(),
+    obs: document.getElementById('c-obs').value.trim()
+  };
+  if (editingClientId) {
+    const idx = clients.findIndex(c=>c.id===editingClientId);
+    clients[idx] = {...clients[idx], ...data};
+  } else {
+    clients.push({id: nextClientId++, ...data});
+  }
+  document.getElementById('client-overlay').classList.remove('open');
+  saveData();
+  renderClients();
+}
+
+function deleteClient(id) {
+  if (!confirm('Excluir este cliente? As tarefas relacionadas não serão excluídas.')) return;
+  clients = clients.filter(c=>c.id!==id);
+  tasks = tasks.map(t => t.clienteId===id ? {...t, clienteId: null} : t);
+  saveData();
+  renderClients();
+}
+
+// ============================================================
+//  CLIENT DETAIL
+// ============================================================
+function viewClient(id) {
+  const c = clients.find(x=>x.id===id);
+  document.getElementById('cd-title').textContent = c.nome;
+  document.getElementById('cd-edit-btn').onclick = () => { closeClientDetail(); openClientModal(id); };
+
+  const clientTasks = tasks.filter(t=>t.clienteId===id);
+  const openT = clientTasks.filter(t=>t.status!=='Concluída');
+  const today = new Date().toISOString().split('T')[0];
+
+  document.getElementById('cd-body').innerHTML = `
+    <div class="detail-grid" style="margin-bottom:16px">
+      <div class="detail-item">
+        <div class="detail-key">Segmento</div>
+        <div class="detail-val">${c.segmento||'—'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-key">Região / UF</div>
+        <div class="detail-val">${c.regiao||'—'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-key">Status</div>
+        <div class="detail-val">${statusBadgeHTML(c.status)}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-key">Responsável interno</div>
+        <div class="detail-val">${c.responsavelInterno||'—'}</div>
+      </div>
+    </div>
+
+    <div class="form-section-title">Particularidades de Coleta</div>
+    <div class="particularidades-box">
+      <div class="partic-row"><span class="partic-label">Método</span><span class="partic-val">${c.metodo}</span></div>
+      <div class="partic-row"><span class="partic-label">Frequência</span><span class="partic-val">${c.frequencia}</span></div>
+      <div class="partic-row"><span class="partic-label">Horário preferencial</span><span class="partic-val">${c.horario||'—'}</span></div>
+      <div class="partic-row"><span class="partic-label">Nº estabelecimentos</span><span class="partic-val">${c.estabs||'—'}</span></div>
+      <div class="partic-row"><span class="partic-label">Categorias</span><span class="partic-val">${c.categorias||'—'}</span></div>
+      <div class="partic-row"><span class="partic-label">Restrições / regras</span><span class="partic-val">${c.restricoes||'Nenhuma'}</span></div>
+    </div>
+
+    ${c.obs ? `<div style="margin-top:14px"><div class="detail-key">Observações</div><div class="detail-val" style="margin-top:4px;color:var(--text2)">${c.obs}</div></div>` : ''}
+
+    <div class="form-section-title" style="margin-top:20px">Tarefas (${clientTasks.length} total · ${openT.length} em aberto)</div>
+    ${clientTasks.length ? clientTasks.map(t=>`
+      <div style="padding:9px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <span class="prio prio-${t.prioridade.toLowerCase().replace('é','e')}"></span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;${t.status==='Concluída'?'text-decoration:line-through;color:var(--muted)':''}">${t.titulo}</div>
+          <div style="font-size:12px;color:var(--muted)">${t.tipo} · ${t.responsavel||'—'}</div>
+        </div>
+        ${statusTaskBadgeHTML(t.status)}
+        <span style="font-size:12px;color:var(--muted)">${t.vencimento?fmtDate(t.vencimento):'—'}</span>
+      </div>`).join('') : '<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma tarefa.</div>'}
+  `;
+  document.getElementById('client-detail-overlay').classList.add('open');
+}
+
+function closeClientDetail(e) {
+  if (!e || e.target === document.getElementById('client-detail-overlay')) {
+    document.getElementById('client-detail-overlay').classList.remove('open');
+  }
+}
+
+// ============================================================
+//  TASKS RENDER
+// ============================================================
+function populateTaskClientFilter() {
+  const sel = document.getElementById('task-client-filter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todos os clientes</option>' +
+    clients.map(c=>`<option value="${c.id}" ${cur==c.id?'selected':''}>${c.nome}</option>`).join('');
+}
+
+function renderTasks() {
+  const q = (document.getElementById('task-search').value||'').toLowerCase();
+  const sf = document.getElementById('task-status-filter').value;
+  const pf = document.getElementById('task-prio-filter').value;
+  const cf = document.getElementById('task-client-filter').value;
+
+  let filtered = tasks.filter(t => {
+    const match = !q || t.titulo.toLowerCase().includes(q) || (t.responsavel||'').toLowerCase().includes(q);
+    const matchS = !sf || t.status === sf;
+    const matchP = !pf || t.prioridade === pf;
+    const matchC = !cf || String(t.clienteId) === cf;
+    return match && matchS && matchP && matchC;
+  }).sort((a,b) => {
+    const prioOrder = {Alta:0,Média:1,Baixa:2};
+    if (a.status==='Concluída' && b.status!=='Concluída') return 1;
+    if (b.status==='Concluída' && a.status!=='Concluída') return -1;
+    return (prioOrder[a.prioridade]||1) - (prioOrder[b.prioridade]||1);
+  });
+
+  const tbody = document.getElementById('tasks-tbody');
+  const empty = document.getElementById('tasks-empty');
+  const today = new Date().toISOString().split('T')[0];
+
+  if (!filtered.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display='none';
+
+  tbody.innerHTML = filtered.map(t => {
+    const c = clients.find(x=>x.id===t.clienteId);
+    const isDone = t.status === 'Concluída';
+    let dueHTML = '—';
+    if (t.vencimento) {
+      const cls = !isDone && t.vencimento < today ? 'due-overdue' : !isDone && t.vencimento === today ? 'due-today' : 'due-ok';
+      const prefix = !isDone && t.vencimento < today ? '⚠ ' : '';
+      dueHTML = `<span class="${cls}">${prefix}${fmtDate(t.vencimento)}</span>`;
+    }
+    return `<tr style="${isDone?'opacity:.6':''}">
+      <td>
+        <div class="check-done ${isDone?'checked':''}" onclick="toggleTask(${t.id})" title="${isDone?'Reabrir':'Marcar como concluída'}"></div>
+      </td>
+      <td>
+        <div style="font-weight:600;${isDone?'text-decoration:line-through':''}">
+          ${t.fromTeams ? '<span title="Importado do Teams" style="display:inline-flex;align-items:center;background:#e8eeff;color:#2563eb;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:5px;vertical-align:middle">TEAMS</span>' : ''}${t.titulo}
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${t.tipo}</div>
+      </td>
+      <td>${c?`<div style="display:flex;align-items:center;gap:6px"><div class="avatar" style="width:24px;height:24px;font-size:10px;background:${clientColor(c.id)};color:#fff">${initials(c.nome)}</div>${c.nome}</div>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${prioBadgeHTML(t.prioridade)}</td>
+      <td style="font-size:13px">${t.responsavel||'—'}</td>
+      <td>${dueHTML}</td>
+      <td>${statusTaskBadgeHTML(t.status)}</td>
+      <td>
+        <div class="actions">
+          <button class="icon-btn icon-btn-edit" title="Editar" onclick="openTaskModal(${t.id})">✏️</button>
+          <button class="icon-btn icon-btn-del" title="Excluir" onclick="deleteTask(${t.id})">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+//  TASK MODAL
+// ============================================================
+function openTaskModal(id) {
+  editingTaskId = id || null;
+  // populate client selects
+  const sel = document.getElementById('t-cliente');
+  sel.innerHTML = '<option value="">— Sem cliente —</option>' +
+    clients.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+
+  if (id) {
+    const t = tasks.find(x=>x.id===id);
+    document.getElementById('task-modal-title').textContent = 'Editar Tarefa';
+    document.getElementById('t-titulo').value = t.titulo;
+    document.getElementById('t-cliente').value = t.clienteId||'';
+    document.getElementById('t-tipo').value = t.tipo;
+    document.getElementById('t-prioridade').value = t.prioridade;
+    document.getElementById('t-status').value = t.status;
+    document.getElementById('t-responsavel').value = t.responsavel||'';
+    document.getElementById('t-vencimento').value = t.vencimento||'';
+    document.getElementById('t-descricao').value = t.descricao||'';
+  } else {
+    document.getElementById('task-modal-title').textContent = 'Nova Tarefa';
+    ['t-titulo','t-responsavel','t-vencimento','t-descricao'].forEach(id=>{document.getElementById(id).value='';});
+    document.getElementById('t-cliente').value='';
+    document.getElementById('t-tipo').value='Follow-up';
+    document.getElementById('t-prioridade').value='Média';
+    document.getElementById('t-status').value='Pendente';
+  }
+  document.getElementById('task-overlay').classList.add('open');
+}
+
+function closeTaskModal(e) {
+  if (!e || e.target === document.getElementById('task-overlay')) {
+    document.getElementById('task-overlay').classList.remove('open');
+  }
+}
+
+function saveTask() {
+  const titulo = document.getElementById('t-titulo').value.trim();
+  if (!titulo) { alert('Informe o título da tarefa.'); return; }
+  const clienteId = parseInt(document.getElementById('t-cliente').value)||null;
+  const data = {
+    titulo, clienteId,
+    tipo: document.getElementById('t-tipo').value,
+    prioridade: document.getElementById('t-prioridade').value,
+    status: document.getElementById('t-status').value,
+    responsavel: document.getElementById('t-responsavel').value.trim(),
+    vencimento: document.getElementById('t-vencimento').value||null,
+    descricao: document.getElementById('t-descricao').value.trim()
+  };
+  if (editingTaskId) {
+    const idx = tasks.findIndex(t=>t.id===editingTaskId);
+    tasks[idx] = {...tasks[idx], ...data};
+  } else {
+    tasks.push({id: nextTaskId++, ...data});
+  }
+  document.getElementById('task-overlay').classList.remove('open');
+  saveData();
+  renderTasks();
+}
+
+function deleteTask(id) {
+  if (!confirm('Excluir esta tarefa?')) return;
+  tasks = tasks.filter(t=>t.id!==id);
+  saveData();
+  renderTasks();
+}
+
+function toggleTask(id) {
+  const t = tasks.find(x=>x.id===id);
+  t.status = t.status === 'Concluída' ? 'Pendente' : 'Concluída';
+  saveData();
+  renderTasks();
+}
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+
+function statusBadgeHTML(s) {
+  const map = {
+    'Ativo': 'badge-green', 'Em implantação': 'badge-yellow', 'Inativo': 'badge-gray'
+  };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+
+function statusTaskBadgeHTML(s) {
+  const map = { 'Pendente':'badge-yellow', 'Em andamento':'badge-blue', 'Concluída':'badge-green' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+
+function prioBadgeHTML(p) {
+  const map = { 'Alta':'badge-red', 'Média':'badge-yellow', 'Baixa':'badge-green' };
+  return `<span class="badge ${map[p]||'badge-gray'}"><span class="prio prio-${p.toLowerCase().replace('é','e')}"></span>${p}</span>`;
+}
+
+// ============================================================
+//  INIT — conecta ao Firebase e aguarda dados
+// ============================================================
+window.addEventListener('DOMContentLoaded', function() {
+  initFirebase();
+});
+</script>
+
+<!-- ============================================================
+     TEAMS PENDING TASKS — ZONA DE INJEÇÃO AUTOMÁTICA
+     Este bloco é atualizado automaticamente pelo assistente.
+     NÃO EDITE MANUALMENTE.
+     Última sincronização: (nunca)
+     ============================================================ -->
+<!-- TEAMS_PENDING_START -->
+<script>
+// Última sincronização: 15/04/2026
+// Canais varridos: GPA, Grupo Pereira + todos confirmados (13 canais) + Barbosa (canal 2)
+// Mensagens acionáveis: GPA (31/03) — 8 tarefas | Swift (07/04) — 4 tarefas | Barbosa (10/04) — 1 tarefa
+window.TEAMS_PENDING = [
+
+  // ── Barbosa · Solicitação de Evidência (10/04/2026) · msg 1775845804060 ─────
+  { teamsId: "1775845804060_nicole", titulo: "Solicitação de Evidências · Barbosa", clienteNome: "Barbosa", tipo: "Solicitação de Evidência", prioridade: "Alta", responsavel: "Nicole Parolin", vencimento: null, descricao: "Evidência de produtos Ypê no concorrente Shibata Pedro Rachid.", origem: "Teams — Canal Barbosa", teamsAutor: null, teamsData: "10/04/2026" },
+
+  // ── Swift · Solicitação de Evidência · Sem 15 (07/04/2026) ─────────────────
+  { teamsId: "1775574451681_nicole", titulo: "Solicitação de Evidência — Sem 15 · Swift", clienteNome: "Swift", tipo: "Solicitação de Evidência", prioridade: "Alta", responsavel: "Nicole Parolin", vencimento: null, descricao: "Produtos: ISCA DE FRANGO EMPANADA 300G Sadia/Seara · MILANESA SEARA 100G · BIFE CHORIZO BOVINO KG · PERNIL SUINO ASSA FÁCIL KG.\nLocais: Assaí Aricanduva, Assaí Corifeu, Assaí Interlagos, Atacadão Vila California, Atacadão Barra Funda, Atacadão Vila Maria, Max Muffato Carlos Leal.", origem: "Teams — Canal Swift", teamsAutor: "Beatriz Barreto (Zukkin - Qualidade)", teamsData: "07/04/2026" },
+  { teamsId: "1775574451681_luiz", titulo: "Solicitação de Evidência — Sem 15 · Swift", clienteNome: "Swift", tipo: "Solicitação de Evidência", prioridade: "Alta", responsavel: "Luiz Felipe", vencimento: null, descricao: "Produtos: ISCA DE FRANGO EMPANADA 300G Sadia/Seara · MILANESA SEARA 100G · BIFE CHORIZO BOVINO KG · PERNIL SUINO ASSA FÁCIL KG.\nLocais: Assaí Castelo Branco (RP), Atacadão Jd Interlagos (RP), Savegnago Ribeirão, Savegnago Silveira Martins.", origem: "Teams — Canal Swift", teamsAutor: "Beatriz Barreto (Zukkin - Qualidade)", teamsData: "07/04/2026" },
+  { teamsId: "1775574451681_gabriela", titulo: "Solicitação de Evidência — Sem 15 · Swift", clienteNome: "Swift", tipo: "Solicitação de Evidência", prioridade: "Alta", responsavel: "Gabriela Prado", vencimento: null, descricao: "Produtos: ISCA DE FRANGO EMPANADA 300G Sadia/Seara · MILANESA SEARA 100G · BIFE CHORIZO BOVINO KG · PERNIL SUINO ASSA FÁCIL KG.\nLocais: Tauste Jd Santa Cecilia (Sorocaba).", origem: "Teams — Canal Swift", teamsAutor: "Beatriz Barreto (Zukkin - Qualidade)", teamsData: "07/04/2026" },
+  { teamsId: "1775574451681_julia", titulo: "Solicitação de Evidência — Sem 15 · Swift", clienteNome: "Swift", tipo: "Solicitação de Evidência", prioridade: "Alta", responsavel: "Julia Alves", vencimento: null, descricao: "Produtos: ISCA DE FRANGO EMPANADA 300G Sadia/Seara · MILANESA SEARA 100G · BIFE CHORIZO BOVINO KG · PERNIL SUINO ASSA FÁCIL KG.\nLocais: Tauste Palmital (Marília), Confiança Marília.", origem: "Teams — Canal Swift", teamsAutor: "Beatriz Barreto (Zukkin - Qualidade)", teamsData: "07/04/2026" },
+
+  // ── GPA · Alteração de Endereço (31/03/2026) · msg 1774977226246 ────────────
+  { teamsId: "1774977226246_andre_altend", titulo: "Alteração de Endereço · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Alteração de Endereço", prioridade: "Normal", responsavel: "André Bezerra", vencimento: null, descricao: "Cliente solicita troca de endereço do concorrente: Nordestão - Capim Macio Natal\nAtual: Av. Engenheiro Roberto Freire, 2050 - Capim Macio, Natal/RN\nNovo: Av. Sen. Salgado Filho, 1656 - Lagoa Nova, Natal/RN", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
+
+  { teamsId: "1774977226246_mariana_altend", titulo: "Alteração de Endereço · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Alteração de Endereço", prioridade: "Normal", responsavel: "Mariana Dantas", vencimento: null, descricao: "Cliente solicita troca de endereços:\n• Super BH - Uberlândia Laranjeiras: AV. Seme Simão, 955 → Lateral da Nicomedes - Alameda dos Pinhais, 3500 - Morada da Colina\n• Bramil - Petrópolis: R. Bernardo Proença, 154 → R. Gen. Rondon, 288 - Quitandinha", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
+  { teamsId: "1774977226246_mariana_remov", titulo: "Remoção de Concorrente · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Remoção de Concorrente", prioridade: "Normal", responsavel: "Mariana Dantas", vencimento: null, descricao: "Cliente solicita retirar do cronograma: Supermarket - Petrópolis.", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
+
+  { teamsId: "1774977226246_gabriela_altend", titulo: "Alteração de Endereço · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Alteração de Endereço", prioridade: "Normal", responsavel: "Gabriela Prado", vencimento: null, descricao: "Cliente solicita troca de endereços:\n• Empório Prime - Flamboyant: Av. Alphaville Flamboyant → Av. Dep. Jamel Cecílio, 3061 - Jardim Goiás, Goiânia/GO\n• Savegnago - Nucleo Res. Silvio Vilari: R. JOAQUIM EVANGELISTA DE TOLÊDO, 243 → Av. Francisco Pereira Lopes, 1701 - Parque Santa Monica, São Carlos/SP", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
+
+  { teamsId: "1774977226246_nicole_altend", titulo: "Alteração de Endereço · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Alteração de Endereço", prioridade: "Normal", responsavel: "Nicole Parolin", vencimento: null, descricao: "Cliente solicita troca de endereços:\n• Coop - São Bernardo: Av. Dr Rudge Ramos, 500 → Av. Queirós dos Santos, 456 - Centro, Santo André/SP\n• Nagumo - Santo André: RUA LEONILDA, 265 → Av. Pres. H. de A. Castelo Branco, 3413\n• Shibata - Jd. Maria Augusta: AV. BANDEIRANTES 808 → Av. Prof. Walter Thaumaturgo, 1160 - Centro, Taubaté/SP\n• Nagumo - Jardim Colonial: R. CARLOS NUNES DE PAULA, 1912 → Av. Charles Schnneider, 420 - Parque Sr. do Bonfim, Taubaté/SP", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
+  { teamsId: "1774977226246_nicole_remov", titulo: "Remoção de Concorrente · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Remoção de Concorrente", prioridade: "Normal", responsavel: "Nicole Parolin", vencimento: null, descricao: "Cliente solicita retirar do cronograma:\n• Nagumo - Vila Luzita\n• Coop - Diadema\n• Lopes - Estrada de Itapecerica", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
+
+  { teamsId: "1774977226246_luiz_altend", titulo: "Alteração de Endereço · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Alteração de Endereço", prioridade: "Normal", responsavel: "Luiz Felipe", vencimento: null, descricao: "Cliente solicita troca de endereço:\n• Rede Krill - Samambaia: R. Benedita Custódio, 175 - SAMAMBAIA, Praia Grande/SP → Av. Padre Anchieta, 6193 - Parque Oasis, Peruíbe/SP", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
+  { teamsId: "1774977226246_luiz_remov", titulo: "Remoção de Concorrente · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Remoção de Concorrente", prioridade: "Normal", responsavel: "Luiz Felipe", vencimento: null, descricao: "Cliente solicita retirar do cronograma: Sonda - São Vicente.", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" }
+
+];
+</script>
+<!-- TEAMS_PENDING_END -->
+
+</body>
+</html>
