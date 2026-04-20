@@ -1419,9 +1419,9 @@ window.addEventListener('DOMContentLoaded', function() {
      ============================================================ -->
 <!-- TEAMS_PENDING_START -->
 <script>
-// Última sincronização: 15/04/2026
-// Canais varridos: GPA, Grupo Pereira + todos confirmados (13 canais) + Barbosa (canal 2)
-// Mensagens acionáveis: GPA (31/03) — 8 tarefas | Swift (07/04) — 4 tarefas | Barbosa (10/04) — 1 tarefa
+// Última sincronização: 20/04/2026 12:13
+// Canais varridos: GPA, Grupo Pereira, Swift, Barbosa, Max Muffato (14 canais)
+// Mensagens acionáveis: GPA (31/03) — 8 tarefas | Swift (07/04) — 4 tarefas | Barbosa (10/04) — 1 tarefa | Grupo Pereira (15/04 + 17/04) — 4 tarefas
 window.TEAMS_PENDING = [
 
   // ── Barbosa · Solicitação de Evidência (10/04/2026) · msg 1775845804060 ─────
@@ -1445,7 +1445,15 @@ window.TEAMS_PENDING = [
   { teamsId: "1774977226246_nicole_remov", titulo: "Remoção de Concorrente · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Remoção de Concorrente", prioridade: "Normal", responsavel: "Nicole Parolin", vencimento: null, descricao: "Cliente solicita retirar do cronograma:\n• Nagumo - Vila Luzita\n• Coop - Diadema\n• Lopes - Estrada de Itapecerica", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
 
   { teamsId: "1774977226246_luiz_altend", titulo: "Alteração de Endereço · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Alteração de Endereço", prioridade: "Normal", responsavel: "Luiz Felipe", vencimento: null, descricao: "Cliente solicita troca de endereço:\n• Rede Krill - Samambaia: R. Benedita Custódio, 175 - SAMAMBAIA, Praia Grande/SP → Av. Padre Anchieta, 6193 - Parque Oasis, Peruíbe/SP", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
-  { teamsId: "1774977226246_luiz_remov", titulo: "Remoção de Concorrente · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Remoção de Concorrente", prioridade: "Normal", responsavel: "Luiz Felipe", vencimento: null, descricao: "Cliente solicita retirar do cronograma: Sonda - São Vicente.", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" }
+  { teamsId: "1774977226246_luiz_remov", titulo: "Remoção de Concorrente · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Remoção de Concorrente", prioridade: "Normal", responsavel: "Luiz Felipe", vencimento: null, descricao: "Cliente solicita retirar do cronograma: Sonda - São Vicente.", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
+
+  // ── Grupo Pereira · Substituição de Concorrente (15/04/2026) · msg 1776267296529 ─────
+  { teamsId: "teams-1776267296529-LuizFelipe", titulo: "Ajuste de Agendamento - Via Caxias · Grupo Pereira", clienteNome: "Grupo Pereira", tipo: "Substituição de Concorrente", responsavel: "Luiz Felipe", prazo: null, descricao: "Cliente solicita troca de concorrente de #6211 Via Atacadista RS Passarela Caxias para #8088 Passarela RS Via Atac. Caxias. Mesma localização, apenas ajuste no agendamento.", origem: "Teams", canal: "GRUPO_PEREIRA", messageId: "1776267296529", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "15/04/2026" },
+  { teamsId: "teams-1776267296529-AndreBezerra", titulo: "Ajuste de Agendamento - Via Caxias · Grupo Pereira", clienteNome: "Grupo Pereira", tipo: "Substituição de Concorrente", responsavel: "André Bezerra", prazo: null, descricao: "Cliente solicita troca de concorrente de #6211 Via Atacadista RS Passarela Caxias para #8088 Passarela RS Via Atac. Caxias. Mesma localização, apenas ajuste no agendamento.", origem: "Teams", canal: "GRUPO_PEREIRA", messageId: "1776267296529", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "15/04/2026" },
+
+  // ── Grupo Pereira · Solicitação de Evidência · Baixo Retorno Perecíveis RS (17/04/2026) · msg 1776454780467 ─────
+  { teamsId: "teams-1776454780467-LuizFelipe", titulo: "Baixo Retorno de Encontramento - Perecíveis RS · Grupo Pereira", clienteNome: "Grupo Pereira", tipo: "Solicitação de Evidência", responsavel: "Luiz Felipe", prazo: null, descricao: "Cliente reporta baixo encontramento de perecíveis nos concorrentes Via Caxias, Atacadão Caxias, Stok Canoas, Via Canoas e Desco Santa Cruz. Necessário plano de ação com evidências dos itens não encontrados.", origem: "Teams", canal: "GRUPO_PEREIRA", messageId: "1776454780467", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "17/04/2026" },
+  { teamsId: "teams-1776454780467-AndreBezerra", titulo: "Baixo Retorno de Encontramento - Perecíveis RS · Grupo Pereira", clienteNome: "Grupo Pereira", tipo: "Solicitação de Evidência", responsavel: "André Bezerra", prazo: null, descricao: "Cliente reporta baixo encontramento de perecíveis nos concorrentes Via Caxias, Atacadão Caxias, Stok Canoas, Via Canoas e Desco Santa Cruz. Necessário plano de ação com evidências dos itens não encontrados.", origem: "Teams", canal: "GRUPO_PEREIRA", messageId: "1776454780467", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "17/04/2026" }
 
 ];
 </script>
