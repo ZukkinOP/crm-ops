@@ -260,6 +260,78 @@
       .form-row { grid-template-columns: 1fr; }
       .detail-grid { grid-template-columns: 1fr; }
     }
+
+    /* ── BULK ACTION BAR ────────────────────────────────── */
+    .bulk-bar {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: #1e293b; color: #fff; border-radius: 16px; padding: 12px 20px;
+      display: flex; align-items: center; gap: 12px; z-index: 500;
+      box-shadow: 0 8px 32px rgba(0,0,0,.3); transition: transform .22s cubic-bezier(.34,1.56,.64,1);
+      white-space: nowrap;
+    }
+    .bulk-bar.visible { transform: translateX(-50%) translateY(0); }
+    .bulk-bar-count { font-size: 14px; font-weight: 700; padding-right: 14px; border-right: 1px solid rgba(255,255,255,.2); }
+    .cb-row { width: 15px; height: 15px; cursor: pointer; accent-color: var(--primary); }
+    tr.row-selected td { background: #eff6ff; }
+
+    /* ── NOTAS (GOOGLE KEEP) ────────────────────────────── */
+    .keep-add-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 20px; cursor: text; color: var(--muted); font-size: 15px;
+      box-shadow: var(--shadow-lg); margin-bottom: 6px; display: flex; align-items: center; gap: 10px;
+    }
+    .keep-add-box:hover { box-shadow: 0 4px 20px rgba(0,0,0,.12); }
+    .keep-add-expanded {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px 20px; box-shadow: var(--shadow-lg); margin-bottom: 20px; display: none;
+    }
+    .keep-new-titulo {
+      width: 100%; border: none; font-size: 15px; font-weight: 700; outline: none;
+      margin-bottom: 8px; font-family: inherit; background: transparent;
+    }
+    .keep-new-texto {
+      width: 100%; border: none; outline: none; resize: none; font-family: inherit;
+      font-size: 14px; min-height: 72px; background: transparent; color: var(--text2);
+    }
+    .keep-filter { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .keep-chip {
+      padding: 5px 14px; border-radius: 99px; font-size: 12px; font-weight: 600;
+      cursor: pointer; background: var(--surface2); border: 1.5px solid transparent; color: var(--muted);
+      transition: all .15s; user-select: none;
+    }
+    .keep-chip.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+    .keep-grid { columns: 4 210px; gap: 14px; }
+    .keep-card {
+      break-inside: avoid; border-radius: 12px; border: 1px solid rgba(0,0,0,.1);
+      padding: 14px 16px; margin-bottom: 14px; position: relative; transition: box-shadow .15s;
+    }
+    .keep-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.12); }
+    .keep-card:hover .keep-card-actions { opacity: 1; }
+    .keep-card-title {
+      font-weight: 700; font-size: 14px; margin-bottom: 6px; outline: none; border: none;
+      background: transparent; width: 100%; resize: none; font-family: inherit; display: block;
+      overflow: hidden;
+    }
+    .keep-card-body {
+      font-size: 13px; line-height: 1.6; outline: none; border: none; background: transparent;
+      width: 100%; resize: none; font-family: inherit; color: var(--text2); min-height: 36px;
+      display: block; overflow: hidden;
+    }
+    .keep-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .keep-card-analista { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+    .keep-card-actions { opacity: 0; display: flex; gap: 2px; transition: opacity .15s; }
+    .keep-card-actions button {
+      background: transparent; border: none; cursor: pointer; padding: 4px 7px;
+      border-radius: 6px; font-size: 13px; color: var(--muted);
+    }
+    .keep-card-actions button:hover { background: rgba(0,0,0,.08); color: var(--text); }
+    .keep-colors { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,.07); }
+    .keep-color-dot {
+      width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+      border: 2.5px solid transparent; transition: transform .1s; flex-shrink: 0;
+    }
+    .keep-color-dot:hover { transform: scale(1.2); }
+    .keep-color-dot.sel { border-color: #2563eb; }
   </style>
 </head>
 <body>
@@ -283,6 +355,10 @@
       <div class="nav-item" onclick="showPage('tarefas')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
         Tarefas & Follow-ups
+      </div>
+      <div class="nav-item" onclick="showPage('notas')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Notas
       </div>
     </nav>
     <div class="sidebar-footer">Operações de Campo · 2026</div>
@@ -418,6 +494,7 @@
             <table>
               <thead>
                 <tr>
+                  <th style="width:32px;text-align:center"><input type="checkbox" class="cb-row" id="cb-all" title="Selecionar todas" onchange="toggleSelectAll(this.checked)"></th>
                   <th style="width:36px"></th>
                   <th>Tarefa</th>
                   <th>Cliente</th>
@@ -437,9 +514,52 @@
           </div>
         </div>
       </div>
+    <!-- ======================== NOTAS ======================== -->
+    <div id="page-notas" class="page">
+      <div class="topbar">
+        <span class="topbar-title">Notas</span>
+      </div>
+      <div class="content">
+        <!-- Collapsed add box -->
+        <div class="keep-add-box" id="keep-add-collapsed" onclick="expandAddNota()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Adicionar nota…
+        </div>
+        <!-- Expanded add form -->
+        <div class="keep-add-expanded" id="keep-add-expanded">
+          <input type="text" class="keep-new-titulo" id="keep-new-titulo" placeholder="Título (opcional)">
+          <textarea class="keep-new-texto" id="keep-new-texto" placeholder="Escreva sua anotação…"></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px">
+            <select class="filter-select" id="keep-new-analista" style="width:auto;font-size:13px">
+              <option>André Bezerra</option>
+              <option>Julia Alves</option>
+              <option>Luiz Felipe</option>
+              <option>Nicole Parolin</option>
+              <option>Gabriela Prado</option>
+              <option>Mariana Dantas</option>
+            </select>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-outline btn-sm" onclick="cancelAddNota()">Cancelar</button>
+              <button class="btn btn-primary btn-sm" onclick="confirmAddNota()">Salvar nota</button>
+            </div>
+          </div>
+        </div>
+        <!-- Analyst filter chips -->
+        <div class="keep-filter" id="keep-filter"></div>
+        <!-- Notes grid -->
+        <div class="keep-grid" id="keep-grid"></div>
+      </div>
     </div>
 
   </main>
+</div>
+
+<!-- BULK ACTION BAR -->
+<div class="bulk-bar" id="bulk-bar">
+  <span class="bulk-bar-count" id="bulk-count">0 selecionadas</span>
+  <button class="btn btn-sm" style="background:#16a34a;color:#fff;border:none" onclick="bulkComplete()">✓ Concluir</button>
+  <button class="btn btn-sm" style="background:#dc2626;color:#fff;border:none" onclick="bulkDelete()">🗑 Excluir</button>
+  <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:none" onclick="clearBulkSelection()">✕ Limpar</button>
 </div>
 
 <!-- ============== MODAL CLIENTE ============== -->
@@ -666,10 +786,16 @@
 // ============================================================
 let clients = [];
 let tasks = [];
+let notes = [];
 let editingClientId = null;
 let editingTaskId = null;
 let nextClientId = 1;
 let nextTaskId = 1;
+let nextNoteId = 1;
+let selectedTasks = new Set();
+let notaFilterAnalista = '';
+const ANALISTAS_OP = ['André Bezerra','Julia Alves','Luiz Felipe','Nicole Parolin','Gabriela Prado','Mariana Dantas'];
+const NOTE_COLORS  = ['#ffffff','#fff9c4','#d7f5d3','#d3edff','#ffd6e0','#e8d5ff','#ffe0b2','#f0f0f0'];
 
 const SCHEMA_VERSION = '4'; // bump para forçar reset do banco
 
@@ -711,14 +837,16 @@ let importedTeamsIds = [];
 function recalcIds() {
   nextClientId = (clients.length ? clients.reduce((m,c) => Math.max(m,c.id), 0) : 0) + 1;
   nextTaskId   = (tasks.length   ? tasks.reduce((m,t)   => Math.max(m,t.id), 0) : 0) + 1;
+  nextNoteId   = (notes.length   ? notes.reduce((m,n)   => Math.max(m,n.id), 0) : 0) + 1;
 }
 
 function rerenderCurrentPage() {
   const activePage = document.querySelector('.page.active');
   if (!activePage) return;
   const pageId = activePage.id.replace('page-', '');
-  if (pageId === 'tarefas')  { populateTaskClientFilter(); renderTasks(); }
+  if (pageId === 'tarefas')       { populateTaskClientFilter(); renderTasks(); }
   else if (pageId === 'clientes') renderClients();
+  else if (pageId === 'notas')    renderNotas();
 }
 
 function saveData() {
@@ -727,6 +855,7 @@ function saveData() {
     version: SCHEMA_VERSION,
     clients: clients,
     tasks:   tasks,
+    notes:   notes,
     importedTeamsIds: importedTeamsIds
   }).catch(e => console.warn('Erro ao salvar no Firebase:', e));
 }
@@ -757,6 +886,7 @@ function initFirebase() {
           } else {
             clients          = Array.isArray(data.clients) ? data.clients : Object.values(data.clients || {});
             tasks            = Array.isArray(data.tasks)   ? data.tasks   : Object.values(data.tasks   || {});
+            notes            = Array.isArray(data.notes)   ? data.notes   : Object.values(data.notes   || {});
             importedTeamsIds = Array.isArray(data.importedTeamsIds) ? data.importedTeamsIds : [];
             recalcIds();
             importTeamsPending();
@@ -767,6 +897,7 @@ function initFirebase() {
           if (data && data.version === SCHEMA_VERSION) {
             clients          = Array.isArray(data.clients) ? data.clients : Object.values(data.clients || {});
             tasks            = Array.isArray(data.tasks)   ? data.tasks   : Object.values(data.tasks   || {});
+            notes            = Array.isArray(data.notes)   ? data.notes   : Object.values(data.notes   || {});
             importedTeamsIds = Array.isArray(data.importedTeamsIds) ? data.importedTeamsIds : [];
             recalcIds();
             rerenderCurrentPage();
@@ -963,9 +1094,11 @@ function showPage(page) {
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+page+"'")) n.classList.add('active');
   });
+  if (page !== 'tarefas') clearBulkSelection();
   if (page === 'dashboard') renderDashboard();
   if (page === 'clientes') renderClients();
   if (page === 'tarefas') { populateTaskClientFilter(); renderTasks(); }
+  if (page === 'notas') renderNotas();
 }
 
 // ============================================================
@@ -1276,7 +1409,11 @@ function renderTasks() {
       const prefix = !isDone && t.vencimento < today ? '⚠ ' : '';
       dueHTML = `<span class="${cls}">${prefix}${fmtDate(t.vencimento)}</span>`;
     }
-    return `<tr style="${isDone?'opacity:.6':''}">
+    const isSel = selectedTasks.has(t.id);
+    return `<tr style="${isDone?'opacity:.55':''}" class="${isSel?'row-selected':''}">
+      <td style="text-align:center">
+        <input type="checkbox" class="cb-row" data-id="${t.id}" ${isSel?'checked':''} onchange="toggleTaskSelect(${t.id},this.checked)">
+      </td>
       <td>
         <div class="check-done ${isDone?'checked':''}" onclick="toggleTask(${t.id})" title="${isDone?'Reabrir':'Marcar como concluída'}"></div>
       </td>
@@ -1404,6 +1541,179 @@ function prioBadgeHTML(p) {
 }
 
 // ============================================================
+//  BULK SELECTION
+// ============================================================
+function toggleSelectAll(checked) {
+  document.querySelectorAll('.cb-row[data-id]').forEach(cb => {
+    cb.checked = checked;
+    const id = parseInt(cb.dataset.id);
+    checked ? selectedTasks.add(id) : selectedTasks.delete(id);
+  });
+  updateBulkBar();
+}
+
+function toggleTaskSelect(id, checked) {
+  checked ? selectedTasks.add(id) : selectedTasks.delete(id);
+  updateBulkBar();
+  // sync select-all checkbox
+  const all = document.querySelectorAll('.cb-row[data-id]');
+  const cbAll = document.getElementById('cb-all');
+  if (cbAll) cbAll.checked = all.length > 0 && [...all].every(c => c.checked);
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const n = selectedTasks.size;
+  bar.classList.toggle('visible', n > 0);
+  const el = document.getElementById('bulk-count');
+  if (el) el.textContent = `${n} tarefa${n !== 1 ? 's' : ''} selecionada${n !== 1 ? 's' : ''}`;
+}
+
+function clearBulkSelection() {
+  selectedTasks.clear();
+  document.querySelectorAll('.cb-row').forEach(cb => cb.checked = false);
+  updateBulkBar();
+}
+
+function bulkComplete() {
+  const n = selectedTasks.size;
+  if (!n) return;
+  selectedTasks.forEach(id => {
+    const t = tasks.find(x => x.id === id);
+    if (t) t.status = 'Concluída';
+  });
+  saveData();
+  clearBulkSelection();
+  renderTasks();
+  showToast(`✅ ${n} tarefa${n !== 1 ? 's' : ''} concluída${n !== 1 ? 's' : ''}!`, 'success');
+}
+
+function bulkDelete() {
+  const n = selectedTasks.size;
+  if (!n) return;
+  if (!confirm(`Excluir ${n} tarefa${n !== 1 ? 's' : ''}? Esta ação não pode ser desfeita.`)) return;
+  tasks = tasks.filter(t => !selectedTasks.has(t.id));
+  saveData();
+  clearBulkSelection();
+  renderTasks();
+  showToast(`🗑 ${n} tarefa${n !== 1 ? 's' : ''} excluída${n !== 1 ? 's' : ''}.`, 'info');
+}
+
+// ============================================================
+//  NOTAS (GOOGLE KEEP)
+// ============================================================
+function expandAddNota() {
+  document.getElementById('keep-add-collapsed').style.display = 'none';
+  document.getElementById('keep-add-expanded').style.display = 'block';
+  document.getElementById('keep-new-titulo').focus();
+}
+
+function cancelAddNota() {
+  document.getElementById('keep-add-collapsed').style.display = '';
+  document.getElementById('keep-add-expanded').style.display = 'none';
+  document.getElementById('keep-new-titulo').value = '';
+  document.getElementById('keep-new-texto').value = '';
+}
+
+function confirmAddNota() {
+  const titulo   = document.getElementById('keep-new-titulo').value.trim();
+  const texto    = document.getElementById('keep-new-texto').value.trim();
+  const analista = document.getElementById('keep-new-analista').value;
+  if (!titulo && !texto) { cancelAddNota(); return; }
+  notes.unshift({ id: nextNoteId++, analista, titulo, texto, cor: '#ffffff', criadoEm: new Date().toISOString() });
+  saveData();
+  cancelAddNota();
+  renderNotas();
+}
+
+function renderNotas() {
+  // Filter chips
+  const filterEl = document.getElementById('keep-filter');
+  if (filterEl) {
+    filterEl.innerHTML =
+      `<span style="font-size:12px;color:var(--muted);font-weight:600">Filtrar:</span>
+       <div class="keep-chip ${!notaFilterAnalista ? 'active' : ''}" onclick="filterNotas('')">Todas</div>` +
+      ANALISTAS_OP.map(a =>
+        `<div class="keep-chip ${notaFilterAnalista === a ? 'active' : ''}" onclick="filterNotas('${a}')">${a.split(' ')[0]}</div>`
+      ).join('');
+  }
+
+  const filtered = notaFilterAnalista ? notes.filter(n => n.analista === notaFilterAnalista) : notes;
+  const grid = document.getElementById('keep-grid');
+  if (!grid) return;
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty-state" style="padding:40px 0"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Nenhuma nota ainda.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(n => {
+    const dots = NOTE_COLORS.map(c =>
+      `<div class="keep-color-dot ${n.cor === c ? 'sel' : ''}" style="background:${c === '#ffffff' ? '#f8f8f8' : c};${c==='#ffffff'?'border:1px solid #ddd':''}" title="Cor" onclick="setNotaColor(${n.id},'${c}')"></div>`
+    ).join('');
+    return `<div class="keep-card" id="nota-${n.id}" style="background:${n.cor || '#fff'}">
+      <textarea class="keep-card-title" rows="1" placeholder="Título" onblur="saveNota(${n.id})" oninput="autoResizeTA(this)">${esc(n.titulo||'')}</textarea>
+      <textarea class="keep-card-body" rows="2" placeholder="Anotação…" onblur="saveNota(${n.id})" oninput="autoResizeTA(this)">${esc(n.texto||'')}</textarea>
+      <div class="keep-colors">${dots}</div>
+      <div class="keep-card-footer">
+        <span class="keep-card-analista">${n.analista}</span>
+        <div class="keep-card-actions">
+          <button onclick="deleteNota(${n.id})" title="Excluir nota">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Auto-resize all textareas
+  grid.querySelectorAll('textarea').forEach(autoResizeTA);
+}
+
+function filterNotas(analista) {
+  notaFilterAnalista = analista;
+  renderNotas();
+}
+
+function saveNota(id) {
+  const card = document.getElementById('nota-' + id);
+  if (!card) return;
+  const n = notes.find(x => x.id === id);
+  if (!n) return;
+  n.titulo = card.querySelector('.keep-card-title').value;
+  n.texto  = card.querySelector('.keep-card-body').value;
+  saveData();
+}
+
+function deleteNota(id) {
+  notes = notes.filter(n => n.id !== id);
+  saveData();
+  renderNotas();
+}
+
+function setNotaColor(id, cor) {
+  const n = notes.find(x => x.id === id);
+  if (!n) return;
+  n.cor = cor;
+  saveData();
+  // Update card background directly (avoid full re-render while typing)
+  const card = document.getElementById('nota-' + id);
+  if (card) {
+    card.style.background = cor;
+    card.querySelectorAll('.keep-color-dot').forEach((dot, i) => {
+      dot.classList.toggle('sel', NOTE_COLORS[i] === cor);
+    });
+  }
+}
+
+function autoResizeTA(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 400) + 'px';
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ============================================================
 //  INIT — conecta ao Firebase e aguarda dados
 // ============================================================
 window.addEventListener('DOMContentLoaded', function() {
@@ -1419,9 +1729,9 @@ window.addEventListener('DOMContentLoaded', function() {
      ============================================================ -->
 <!-- TEAMS_PENDING_START -->
 <script>
-// Última sincronização: 20/04/2026 12:13
-// Canais varridos: GPA, Grupo Pereira, Swift, Barbosa, Max Muffato (14 canais)
-// Mensagens acionáveis: GPA (31/03) — 8 tarefas | Swift (07/04) — 4 tarefas | Barbosa (10/04) — 1 tarefa | Grupo Pereira (15/04 + 17/04) — 4 tarefas
+// Última sincronização: 15/04/2026
+// Canais varridos: GPA, Grupo Pereira + todos confirmados (13 canais) + Barbosa (canal 2)
+// Mensagens acionáveis: GPA (31/03) — 8 tarefas | Swift (07/04) — 4 tarefas | Barbosa (10/04) — 1 tarefa
 window.TEAMS_PENDING = [
 
   // ── Barbosa · Solicitação de Evidência (10/04/2026) · msg 1775845804060 ─────
@@ -1445,15 +1755,7 @@ window.TEAMS_PENDING = [
   { teamsId: "1774977226246_nicole_remov", titulo: "Remoção de Concorrente · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Remoção de Concorrente", prioridade: "Normal", responsavel: "Nicole Parolin", vencimento: null, descricao: "Cliente solicita retirar do cronograma:\n• Nagumo - Vila Luzita\n• Coop - Diadema\n• Lopes - Estrada de Itapecerica", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
 
   { teamsId: "1774977226246_luiz_altend", titulo: "Alteração de Endereço · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Alteração de Endereço", prioridade: "Normal", responsavel: "Luiz Felipe", vencimento: null, descricao: "Cliente solicita troca de endereço:\n• Rede Krill - Samambaia: R. Benedita Custódio, 175 - SAMAMBAIA, Praia Grande/SP → Av. Padre Anchieta, 6193 - Parque Oasis, Peruíbe/SP", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
-  { teamsId: "1774977226246_luiz_remov", titulo: "Remoção de Concorrente · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Remoção de Concorrente", prioridade: "Normal", responsavel: "Luiz Felipe", vencimento: null, descricao: "Cliente solicita retirar do cronograma: Sonda - São Vicente.", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" },
-
-  // ── Grupo Pereira · Substituição de Concorrente (15/04/2026) · msg 1776267296529 ─────
-  { teamsId: "teams-1776267296529-LuizFelipe", titulo: "Ajuste de Agendamento - Via Caxias · Grupo Pereira", clienteNome: "Grupo Pereira", tipo: "Substituição de Concorrente", responsavel: "Luiz Felipe", prazo: null, descricao: "Cliente solicita troca de concorrente de #6211 Via Atacadista RS Passarela Caxias para #8088 Passarela RS Via Atac. Caxias. Mesma localização, apenas ajuste no agendamento.", origem: "Teams", canal: "GRUPO_PEREIRA", messageId: "1776267296529", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "15/04/2026" },
-  { teamsId: "teams-1776267296529-AndreBezerra", titulo: "Ajuste de Agendamento - Via Caxias · Grupo Pereira", clienteNome: "Grupo Pereira", tipo: "Substituição de Concorrente", responsavel: "André Bezerra", prazo: null, descricao: "Cliente solicita troca de concorrente de #6211 Via Atacadista RS Passarela Caxias para #8088 Passarela RS Via Atac. Caxias. Mesma localização, apenas ajuste no agendamento.", origem: "Teams", canal: "GRUPO_PEREIRA", messageId: "1776267296529", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "15/04/2026" },
-
-  // ── Grupo Pereira · Solicitação de Evidência · Baixo Retorno Perecíveis RS (17/04/2026) · msg 1776454780467 ─────
-  { teamsId: "teams-1776454780467-LuizFelipe", titulo: "Baixo Retorno de Encontramento - Perecíveis RS · Grupo Pereira", clienteNome: "Grupo Pereira", tipo: "Solicitação de Evidência", responsavel: "Luiz Felipe", prazo: null, descricao: "Cliente reporta baixo encontramento de perecíveis nos concorrentes Via Caxias, Atacadão Caxias, Stok Canoas, Via Canoas e Desco Santa Cruz. Necessário plano de ação com evidências dos itens não encontrados.", origem: "Teams", canal: "GRUPO_PEREIRA", messageId: "1776454780467", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "17/04/2026" },
-  { teamsId: "teams-1776454780467-AndreBezerra", titulo: "Baixo Retorno de Encontramento - Perecíveis RS · Grupo Pereira", clienteNome: "Grupo Pereira", tipo: "Solicitação de Evidência", responsavel: "André Bezerra", prazo: null, descricao: "Cliente reporta baixo encontramento de perecíveis nos concorrentes Via Caxias, Atacadão Caxias, Stok Canoas, Via Canoas e Desco Santa Cruz. Necessário plano de ação com evidências dos itens não encontrados.", origem: "Teams", canal: "GRUPO_PEREIRA", messageId: "1776454780467", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "17/04/2026" }
+  { teamsId: "1774977226246_luiz_remov", titulo: "Remoção de Concorrente · GPA", clienteNome: "Grupo Pão de Açúcar", tipo: "Remoção de Concorrente", prioridade: "Normal", responsavel: "Luiz Felipe", vencimento: null, descricao: "Cliente solicita retirar do cronograma: Sonda - São Vicente.", origem: "Teams — Canal GPA", teamsAutor: "Iris Patricio (Zukkin - Qualidade)", teamsData: "31/03/2026" }
 
 ];
 </script>
